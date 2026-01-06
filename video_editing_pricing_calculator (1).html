@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Editing Pricing Calculator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0e0e0e;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #151515;
+      padding: 30px;
+      border-radius: 14px;
+      width: 420px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 14px;
+      margin-top: 12px;
+      display: block;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background: #222;
+      color: #fff;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #1f1f1f;
+      border-radius: 10px;
+    }
+
+    .result p {
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    .highlight {
+      font-size: 18px;
+      font-weight: bold;
+      color: #4ade80;
+    }
+
+    .side {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .side div {
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+      width: 48%;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Pricing Calculator</h2>
+
+    <label>Client Type</label>
+    <select id="clientType" onchange="calculate()">
+      <option value="indian">Indian</option>
+      <option value="international">International</option>
+    </select>
+
+    <label>Video Type</label>
+    <select id="videoType" onchange="calculate()">
+      <option value="short_simple">Short Form – Simple</option>
+      <option value="short_complex">Short Form – Complex</option>
+      <option value="long_simple">Long Form – Simple</option>
+      <option value="long_complex">Long Form – Complex</option>
+    </select>
+
+    <label>Quantity (reels or minutes)</label>
+    <input type="number" id="quantity" value="1" min="1" oninput="calculate()" />
+
+    <button onclick="generateInvoice()" style="width:100%;margin-top:10px;padding:10px;border-radius:8px;border:none;background:#4ade80;color:#000;font-weight:bold;cursor:pointer">Generate Invoice (PDF)</button>
+
+    <div class="result">
+      <p>Total Price</p>
+      <p class="highlight" id="total">—</p>
+
+      <div class="side">
+        <div>
+          <p>10%</p>
+          <p id="ten">—</p>
+        </div>
+        <div>
+          <p>20%</p>
+          <p id="twenty">—</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calculate() {
+      const client = document.getElementById('clientType').value;
+      const type = document.getElementById('videoType').value;
+      const qty = Number(document.getElementById('quantity').value);
+
+      let price = 0;
+      let symbol = '₹';
+
+      if (client === 'indian') {
+        if (type === 'short_simple') price = 500;
+        if (type === 'short_complex') price = 700;
+        if (type === 'long_simple') price = 500;
+        if (type === 'long_complex') price = 700;
+      } else {
+        symbol = '$';
+        if (type === 'short_simple') price = 10;
+        if (type === 'short_complex') price = 15;
+        if (type === 'long_simple') price = 4;
+        if (type === 'long_complex') price = 7;
+      }
+
+      const total = price * qty;
+      document.getElementById('total').innerText = symbol + total.toFixed(2);
+      document.getElementById('ten').innerText = symbol + (total * 0.10).toFixed(2);
+      document.getElementById('twenty').innerText = symbol + (total * 0.20).toFixed(2);
+    }
+
+    calculate();
+  
+    function generateInvoice() {
+      const company = prompt('Enter Client Company Name');
+      const email = prompt('Enter Client Email');
+      if (!company) return;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const invoiceNo = 'INV-' + Math.floor(Math.random() * 100000);
+      const issueDate = new Date().toLocaleDateString();
+      const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString();
+
+      const totalText = document.getElementById('total').innerText;
+      const qty = document.getElementById('quantity').value;
+      const videoType = document.getElementById('videoType').selectedOptions[0].text;
+
+      doc.setFontSize(16);
+      doc.text('Wunzarr Production Agency', 20, 20);
+      doc.setFontSize(10);
+      doc.text('Team Lead: Ismaiel Iqbal', 20, 26);
+      doc.text('Phone: +91 9086000360', 20, 31);
+      doc.text('Email: ismaielice@gmail.com', 20, 36);
+
+      doc.text(`Invoice No: ${invoiceNo}`, 140, 20);
+      doc.text(`Issued Date: ${issueDate}`, 140, 26);
+      doc.text(`Due Date: ${dueDate}`, 140, 31);
+
+      doc.line(20, 42, 190, 42);
+
+      doc.text(`Billed To: ${company}`, 20, 50);
+      doc.text(`Client Email: ${email}`, 20, 56);
+
+      doc.line(20, 62, 190, 62);
+
+      doc.text('Description', 20, 70);
+      doc.text('Qty', 110, 70);
+      doc.text('Unit Cost', 130, 70);
+      doc.text('Total', 160, 70);
+
+      doc.line(20, 73, 190, 73);
+
+      doc.text(videoType, 20, 82);
+      doc.text(qty.toString(), 110, 82);
+      doc.text('-', 130, 82);
+      doc.text(totalText, 160, 82);
+
+      doc.line(20, 95, 190, 95);
+      doc.setFontSize(12);
+      doc.text(`Grand Total: ${totalText}`, 140, 105);
+
+      doc.save(`${invoiceNo}.pdf`);
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</body>
+</html>
